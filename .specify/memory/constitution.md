@@ -1,13 +1,15 @@
 <!--
 Sync Impact Report
-Version change: [template] → 1.0.0 (initial ratification)
-Modified principles: none (first version)
-Added principles: I. Layered Architecture, II. Test-First Development (NON-NEGOTIABLE),
-  III. Spec-Driven Development, IV. English Code, Portuguese Documentation,
-  V. Technology Stack Consistency
-Added sections: Technical Constraints, Development Workflow
+Version change: 1.0.0 → 2.0.0 (backward-incompatible redefinition of the technology stack)
+Modified principles: V. Technology Stack Consistency (Java 21/Spring Boot 3 → Kotlin on
+  JVM 21/Spring Boot 4), IV. English Code, Portuguese Documentation (rationale updated to
+  reference Kotlin/Spring instead of Java/Spring)
+Added sections: none
 Removed sections: none
-Deferred TODOs: none — all placeholders replaced with concrete values
+Deferred TODOs: none
+Rationale for bump: the actual repository (build.gradle.kts, src/main/kotlin/...) uses
+  Kotlin and Spring Boot 4.1.2, not Java and Spring Boot 3 as originally ratified. This
+  redefines a non-negotiable principle rather than clarifying it, hence MAJOR.
 -->
 
 # demo-ia-spec Constitution
@@ -44,16 +46,18 @@ decisions, and scope visible and reviewable before they are locked into code.
 All code identifiers (classes, methods, variables, packages) and inline code comments
 MUST be written in English. All project documentation intended for humans (README,
 specs, ADRs, user-facing docs) MUST be written in Portuguese.
-**Rationale**: English keeps the code consistent with the broader Java/Spring
+**Rationale**: English keeps the code consistent with the broader Kotlin/Spring
 ecosystem and third-party libraries; Portuguese documentation matches the team's
 working language for communication and onboarding.
 
 ### V. Technology Stack Consistency
-The project MUST target Java 21, Spring Boot 3, and Gradle as the build tool.
-Introducing an alternate language runtime, web framework, or build tool MUST go
-through a constitution amendment, not a silent substitution in a feature branch.
+The project MUST target Kotlin on the JVM (Java 21 toolchain), Spring Boot 4, and
+Gradle (Kotlin DSL) as the build tool. Introducing an alternate language runtime,
+web framework, or build tool MUST go through a constitution amendment, not a silent
+substitution in a feature branch.
 **Rationale**: A single, agreed stack avoids fragmentation and keeps tooling (CI,
-linters, IDE config) predictable across the project.
+linters, IDE config) predictable across the project; this reflects the stack already
+in use in the repository (Kotlin + Spring Boot 4.1.2).
 
 ## Technical Constraints
 
@@ -82,4 +86,4 @@ plans, and pull requests MUST be checked for compliance with these principles du
 review; any deviation MUST be justified in writing (e.g., in the plan's Complexity
 Tracking section) or rejected.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
+**Version**: 2.0.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
