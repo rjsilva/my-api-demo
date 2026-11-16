@@ -32,11 +32,11 @@ Projeto único (conforme `plan.md`): `src/main/kotlin/com/spec/demo_ia_spec/` e
 
 **Purpose**: Inicialização do projeto para suportar a API REST
 
-- [ ] T001 Criar os pacotes `controller`, `service`, `repository`, `model`, `dto` e
+- [X] T001 Criar os pacotes `controller`, `service`, `repository`, `model`, `dto` e
   `exception` em `src/main/kotlin/com/spec/demo_ia_spec/`, e os pacotes espelhados
   `controller`, `service`, `repository` em `src/test/kotlin/com/spec/demo_ia_spec/`, conforme
   a estrutura definida em `plan.md`.
-- [ ] T002 [P] Adicionar as dependências `org.springframework.boot:spring-boot-starter-web` e
+- [X] T002 [P] Adicionar as dependências `org.springframework.boot:spring-boot-starter-web` e
   `org.springframework.boot:spring-boot-starter-validation` ao `build.gradle.kts`
   (research.md §1, §2).
 
@@ -48,37 +48,37 @@ Projeto único (conforme `plan.md`): `src/main/kotlin/com/spec/demo_ia_spec/` e
 
 **⚠️ CRITICAL**: Nenhuma história de usuário pode ser implementada antes desta fase estar completa
 
-- [ ] T003 [P] Criar a entidade `Task` em
+- [X] T003 [P] Criar a entidade `Task` em
   `src/main/kotlin/com/spec/demo_ia_spec/model/Task.kt` com os campos: `id: Long`,
   `title: String` (não pode ser vazio/em branco — FR-002; máximo de 100 caracteres, limite
   inclusive — FR-003), `description: String?` (opcional, sem limite de caracteres),
   `completed: Boolean` (padrão `false`), `createdAt: Instant` (definido na criação, imutável),
   conforme `data-model.md`.
-- [ ] T004 [P] Criar `TaskNotFoundException` em
+- [X] T004 [P] Criar `TaskNotFoundException` em
   `src/main/kotlin/com/spec/demo_ia_spec/exception/TaskNotFoundException.kt`.
-- [ ] T005 Criar a interface `TaskRepository` em
+- [X] T005 Criar a interface `TaskRepository` em
   `src/main/kotlin/com/spec/demo_ia_spec/repository/TaskRepository.kt` com os métodos
   `save(task: Task): Task`, `findAllOrdered(): List<Task>` (pendentes antes de concluídas;
   dentro de cada grupo, da mais antiga para a mais recente — FR-005, FR-006), `findById(id:
   Long): Task?`, `deleteById(id: Long): Boolean` (depende de T003).
-- [ ] T005a [P] Escrever teste unitário de `InMemoryTaskRepository` em
+- [X] T005a [P] Escrever teste unitário de `InMemoryTaskRepository` em
   `src/test/kotlin/com/spec/demo_ia_spec/repository/InMemoryTaskRepositoryTest.kt` cobrindo:
   `save` gera `id` sequencial; `findAllOrdered()` retorna pendentes antes de concluídas, cada
   grupo ordenado por `createdAt` ascendente (FR-005, FR-006); `findById` retorna `null` para
   `id` inexistente; `deleteById` remove e retorna `true`/`false` conforme existência da
   tarefa (depende de T005; este teste deve falhar antes de T006 ser implementada).
-- [ ] T006 Implementar `InMemoryTaskRepository` em
+- [X] T006 Implementar `InMemoryTaskRepository` em
   `src/main/kotlin/com/spec/demo_ia_spec/repository/InMemoryTaskRepository.kt`: armazenamento
   em memória thread-safe, geração de `id` sequencial (`Long`), e ordenação de
   `findAllOrdered()` por `(completed ascendente, createdAt ascendente)` conforme
   `data-model.md` (depende de T005, T005a).
-- [ ] T006a [P] Escrever teste unitário de `GlobalExceptionHandler` em
+- [X] T006a [P] Escrever teste unitário de `GlobalExceptionHandler` em
   `src/test/kotlin/com/spec/demo_ia_spec/exception/GlobalExceptionHandlerTest.kt` cobrindo:
   `TaskNotFoundException` mapeada para `404 Not Found` com corpo `{ "message": "..." }`; erro
   de validação (`MethodArgumentNotValidException`) mapeado para `400 Bad Request` com corpo
   `{ "message": "..." }` (FR-009) (depende de T004; este teste deve falhar antes de T007 ser
   implementada).
-- [ ] T007 Criar `GlobalExceptionHandler` (`@RestControllerAdvice`) em
+- [X] T007 Criar `GlobalExceptionHandler` (`@RestControllerAdvice`) em
   `src/main/kotlin/com/spec/demo_ia_spec/exception/GlobalExceptionHandler.kt` mapeando
   `TaskNotFoundException` → `404 Not Found` e erros de validação (`MethodArgumentNotValidException`)
   → `400 Bad Request`, ambos com corpo `{ "message": "..." }` (FR-009) (depende de T004, T006a).
@@ -100,29 +100,29 @@ de 100 caracteres e verificar que retorna `400`.
 
 > **Escrever estes testes PRIMEIRO; garantir que falham antes de implementar.**
 
-- [ ] T008 [P] [US1] Escrever teste unitário de `TaskService.createTask` em
+- [X] T008 [P] [US1] Escrever teste unitário de `TaskService.createTask` em
   `src/test/kotlin/com/spec/demo_ia_spec/service/TaskServiceTest.kt` cobrindo: título válido
   cria tarefa pendente (FR-001); título vazio ou apenas espaços é rejeitado (FR-002); título
   com mais de 100 caracteres é rejeitado (FR-003); título com exatamente 100 caracteres é
   aceito (caso de borda).
-- [ ] T009 [P] [US1] Escrever teste de contrato para `POST /api/tasks` em
+- [X] T009 [P] [US1] Escrever teste de contrato para `POST /api/tasks` em
   `src/test/kotlin/com/spec/demo_ia_spec/controller/TaskControllerTest.kt` (`@WebMvcTest` +
   `MockMvc`) cobrindo `201 Created` com corpo válido e `400 Bad Request` com título
   inválido, conforme `contracts/tasks-api.md`.
 
 ### Implementation for User Story 1
 
-- [ ] T010 [P] [US1] Criar `CreateTaskRequest` em
+- [X] T010 [P] [US1] Criar `CreateTaskRequest` em
   `src/main/kotlin/com/spec/demo_ia_spec/dto/CreateTaskRequest.kt` com `title: String`
   anotado `@NotBlank` e `@Size(max = 100)` (FR-002, FR-003), e `description: String?` opcional.
-- [ ] T011 [P] [US1] Criar `TaskResponse` em
+- [X] T011 [P] [US1] Criar `TaskResponse` em
   `src/main/kotlin/com/spec/demo_ia_spec/dto/TaskResponse.kt` com `id`, `title`,
   `description`, `completed`, `createdAt`, espelhando `Task`.
-- [ ] T012 [US1] Implementar `TaskService.createTask` em
+- [X] T012 [US1] Implementar `TaskService.createTask` em
   `src/main/kotlin/com/spec/demo_ia_spec/service/TaskService.kt`, delegando a persistência a
   `TaskRepository.save` e retornando a `Task` criada com `completed = false` (depende de T006,
   T010).
-- [ ] T013 [US1] Implementar `POST /api/tasks` em
+- [X] T013 [US1] Implementar `POST /api/tasks` em
   `src/main/kotlin/com/spec/demo_ia_spec/controller/TaskController.kt`, recebendo
   `@Valid @RequestBody CreateTaskRequest`, chamando `TaskService.createTask` e retornando
   `201 Created` com `TaskResponse` (depende de T010, T011, T012).
@@ -142,18 +142,18 @@ pendentes antes de todas as concluídas, respeitando a ordem de criação em cad
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T014 [P] [US2] Escrever teste unitário de `TaskService.listTasks` em
+- [X] T014 [P] [US2] Escrever teste unitário de `TaskService.listTasks` em
   `TaskServiceTest.kt` cobrindo: lista vazia quando não há tarefas; pendentes antes de
   concluídas (FR-005); ordem de criação preservada dentro de cada grupo (FR-006).
-- [ ] T015 [P] [US2] Escrever teste de contrato para `GET /api/tasks` em
+- [X] T015 [P] [US2] Escrever teste de contrato para `GET /api/tasks` em
   `TaskControllerTest.kt` verificando `200 OK` com array ordenado e array vazio quando não há
   tarefas, conforme `contracts/tasks-api.md`.
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Implementar `TaskService.listTasks` em `TaskService.kt`, delegando a
+- [X] T016 [US2] Implementar `TaskService.listTasks` em `TaskService.kt`, delegando a
   `TaskRepository.findAllOrdered()` (depende de T006).
-- [ ] T017 [US2] Implementar `GET /api/tasks` em `TaskController.kt`, retornando `200 OK` com
+- [X] T017 [US2] Implementar `GET /api/tasks` em `TaskController.kt`, retornando `200 OK` com
   a lista de `TaskResponse` (depende de T011, T016).
 
 **Checkpoint**: User Stories 1 e 2 funcionam de forma independente.
@@ -171,20 +171,20 @@ tarefa inexistente retorna erro claro.
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T018 [P] [US3] Escrever teste unitário de `TaskService.completeTask` em
+- [X] T018 [P] [US3] Escrever teste unitário de `TaskService.completeTask` em
   `TaskServiceTest.kt` cobrindo: tarefa pendente passa a concluída (FR-007); tarefa já
   concluída permanece concluída sem erro (FR-010); `id` inexistente lança
   `TaskNotFoundException` (FR-009).
-- [ ] T019 [P] [US3] Escrever teste de contrato para `PATCH /api/tasks/{id}/complete` em
+- [X] T019 [P] [US3] Escrever teste de contrato para `PATCH /api/tasks/{id}/complete` em
   `TaskControllerTest.kt` verificando `200 OK` (incluindo chamada repetida) e `404 Not Found`
   para `id` inexistente, conforme `contracts/tasks-api.md`.
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Implementar `TaskService.completeTask` em `TaskService.kt`, buscando a
+- [X] T020 [US3] Implementar `TaskService.completeTask` em `TaskService.kt`, buscando a
   tarefa via `TaskRepository.findById`, lançando `TaskNotFoundException` se não encontrada, e
   marcando `completed = true` (depende de T004, T006).
-- [ ] T021 [US3] Implementar `PATCH /api/tasks/{id}/complete` em `TaskController.kt`,
+- [X] T021 [US3] Implementar `PATCH /api/tasks/{id}/complete` em `TaskController.kt`,
   retornando `200 OK` com `TaskResponse` atualizada (depende de T011, T020).
 
 **Checkpoint**: User Stories 1, 2 e 3 funcionam de forma independente.
@@ -202,19 +202,19 @@ retorna erro claro.
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T022 [P] [US4] Escrever teste unitário de `TaskService.deleteTask` em
+- [X] T022 [P] [US4] Escrever teste unitário de `TaskService.deleteTask` em
   `TaskServiceTest.kt` cobrindo: tarefa existente (pendente ou concluída) é removida (FR-008);
   `id` inexistente lança `TaskNotFoundException` (FR-009).
-- [ ] T023 [P] [US4] Escrever teste de contrato para `DELETE /api/tasks/{id}` em
+- [X] T023 [P] [US4] Escrever teste de contrato para `DELETE /api/tasks/{id}` em
   `TaskControllerTest.kt` verificando `204 No Content` e `404 Not Found` para `id`
   inexistente, conforme `contracts/tasks-api.md`.
 
 ### Implementation for User Story 4
 
-- [ ] T024 [US4] Implementar `TaskService.deleteTask` em `TaskService.kt`, lançando
+- [X] T024 [US4] Implementar `TaskService.deleteTask` em `TaskService.kt`, lançando
   `TaskNotFoundException` se o `id` não existir, e removendo a tarefa via
   `TaskRepository.deleteById` (depende de T004, T006).
-- [ ] T025 [US4] Implementar `DELETE /api/tasks/{id}` em `TaskController.kt`, retornando
+- [X] T025 [US4] Implementar `DELETE /api/tasks/{id}` em `TaskController.kt`, retornando
   `204 No Content` (depende de T024).
 
 **Checkpoint**: Todas as histórias de usuário funcionam de forma independente.
@@ -223,11 +223,11 @@ retorna erro claro.
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T026 [P] Executar manualmente os 5 cenários de `quickstart.md` contra
+- [X] T026 [P] Executar manualmente os 5 cenários de `quickstart.md` contra
   `./gradlew bootRun` e confirmar os resultados esperados.
-- [ ] T027 [P] Revisar todos os identificadores de código criados (classes, métodos,
+- [X] T027 [P] Revisar todos os identificadores de código criados (classes, métodos,
   variáveis) para confirmar que estão em inglês, conforme a Constituição (Princípio IV).
-- [ ] T028 [P] Revisar `TaskController`, `TaskService` e `InMemoryTaskRepository` para
+- [X] T028 [P] Revisar `TaskController`, `TaskService` e `InMemoryTaskRepository` para
   confirmar que não há atalhos entre camadas (ex.: controller acessando o repository
   diretamente), conforme a Constituição (Princípio I).
 
