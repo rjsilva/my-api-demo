@@ -5,9 +5,12 @@ import com.spec.demo_ia_spec.dto.CreateTaskRequest
 import com.spec.demo_ia_spec.exception.TaskNotFoundException
 import com.spec.demo_ia_spec.model.Task
 import com.spec.demo_ia_spec.service.TaskService
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.dao.DataAccessResourceFailureException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -18,6 +21,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.CannotCreateTransactionException
 import java.time.Instant
 
 @WebMvcTest(TaskController::class)
@@ -109,5 +113,36 @@ class TaskControllerTest {
 
         mockMvc.perform(delete("/api/tasks/999"))
             .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `GET tasks returns 503 with generic message when storage is unavailable`() {
+        `when`(taskService.listTasks()).thenThrow(CannotCreateTransactionException("db down"))
+
+        mockMvc.perform(get("/api/tasks"))
+            .andExpect(status().isServiceUnavailable)
+            .andExpect(jsonPath("$.message").value("Storage temporarily unavailable. Please try again later."))
+    }
+
+    @Test
+    fun `POST tasks returns 503 when storage is unavailable`() {
+        `when`(taskService.createTask(CreateTaskRequest(title = "Buy milk", description = null)))
+            .thenThrow(DataAccessResourceFailureException("db down"))
+
+        mockMvc.perform(
+            post("/api/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(mapOf("title" to "Buy milk"))),
+        ).andExpect(status().isServiceUnavailable)
+    }
+
+    @Test
+    fun `data errors that are not storage unavailability do not map to 503`() {
+        `when`(taskService.listTasks()).thenThrow(DataIntegrityViolationException("x"))
+
+        // Unhandled exceptions are rethrown by MockMvc; either way the status must not be 503.
+        val status = runCatching { mockMvc.perform(get("/api/tasks")).andReturn().response.status }.getOrDefault(500)
+
+        assertNotEquals(503, status)
     }
 }

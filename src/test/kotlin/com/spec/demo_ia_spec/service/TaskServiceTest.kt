@@ -2,17 +2,42 @@ package com.spec.demo_ia_spec.service
 
 import com.spec.demo_ia_spec.dto.CreateTaskRequest
 import com.spec.demo_ia_spec.exception.TaskNotFoundException
-import com.spec.demo_ia_spec.repository.InMemoryTaskRepository
+import com.spec.demo_ia_spec.model.Task
+import com.spec.demo_ia_spec.repository.TaskRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.RETURNS_DEFAULTS
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyLong
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.stubbing.Answer
+import java.time.Instant
 
 class TaskServiceTest {
 
-    private val repository = InMemoryTaskRepository()
+    // Records every task passed to save() and echoes it back, assigning an id to new tasks.
+    // Avoids Mockito's any()/captor, which return null for non-nullable Kotlin parameters.
+    private val savedTasks = mutableListOf<Task>()
+    private val repository: TaskRepository = mock(TaskRepository::class.java, Answer { invocation ->
+        if (invocation.method.name == "save") {
+            val task = invocation.arguments[0] as Task
+            savedTasks += task
+            if (task.id == 0L) task.copy(id = savedTasks.size.toLong()) else task
+        } else {
+            RETURNS_DEFAULTS.answer(invocation)
+        }
+    })
     private val service = TaskService(repository)
+
+    private fun task(id: Long, completed: Boolean = false) =
+        Task(id = id, title = "Task $id", description = null, completed = completed, createdAt = Instant.parse("2026-11-15T10:00:00Z"))
 
     @Test
     fun `createTask with valid title creates pending task`() {
@@ -20,6 +45,7 @@ class TaskServiceTest {
 
         assertEquals("Buy milk", created.title)
         assertFalse(created.completed)
+        assertEquals(1, savedTasks.size)
     }
 
     @Test
@@ -32,39 +58,38 @@ class TaskServiceTest {
     }
 
     @Test
-    fun `listTasks returns empty list when no tasks exist`() {
-        assertTrue(service.listTasks().isEmpty())
+    fun `createTask truncates createdAt to microseconds`() {
+        val created = service.createTask(CreateTaskRequest(title = "Buy milk", description = null))
+
+        assertEquals(0, created.createdAt.nano % 1_000)
     }
 
     @Test
-    fun `listTasks returns pending before completed preserving creation order`() {
-        val first = service.createTask(CreateTaskRequest(title = "First", description = null))
-        val second = service.createTask(CreateTaskRequest(title = "Second", description = null))
-        val third = service.createTask(CreateTaskRequest(title = "Third", description = null))
-        repository.save(second.copy(completed = true))
+    fun `listTasks delegates to findAllOrdered`() {
+        val ordered = listOf(task(1), task(3), task(2, completed = true))
+        `when`(repository.findAllOrdered()).thenReturn(ordered)
 
-        val result = service.listTasks()
-
-        assertEquals(listOf(first.id, third.id, second.id), result.map { it.id })
+        assertSame(ordered, service.listTasks())
     }
 
     @Test
     fun `completeTask marks a pending task as completed`() {
-        val created = service.createTask(CreateTaskRequest(title = "Buy milk", description = null))
+        `when`(repository.findById(1L)).thenReturn(task(1))
 
-        val completed = service.completeTask(created.id)
+        val completed = service.completeTask(1L)
 
         assertTrue(completed.completed)
+        assertEquals(listOf(task(1, completed = true)), savedTasks)
     }
 
     @Test
     fun `completeTask is idempotent for an already completed task`() {
-        val created = service.createTask(CreateTaskRequest(title = "Buy milk", description = null))
-        service.completeTask(created.id)
+        `when`(repository.findById(1L)).thenReturn(task(1, completed = true))
 
-        val completedAgain = service.completeTask(created.id)
+        val completedAgain = service.completeTask(1L)
 
         assertTrue(completedAgain.completed)
+        assertTrue(savedTasks.isEmpty())
     }
 
     @Test
@@ -73,26 +98,19 @@ class TaskServiceTest {
     }
 
     @Test
-    fun `deleteTask removes an existing pending task`() {
-        val created = service.createTask(CreateTaskRequest(title = "Buy milk", description = null))
+    fun `deleteTask deletes with a single repository call and no prior lookup`() {
+        `when`(repository.deleteById(5L)).thenReturn(true)
 
-        service.deleteTask(created.id)
+        service.deleteTask(5L)
 
-        assertTrue(service.listTasks().none { it.id == created.id })
+        verify(repository, times(1)).deleteById(5L)
+        verify(repository, never()).findById(anyLong())
     }
 
     @Test
-    fun `deleteTask removes an existing completed task`() {
-        val created = service.createTask(CreateTaskRequest(title = "Buy milk", description = null))
-        service.completeTask(created.id)
+    fun `deleteTask throws TaskNotFoundException when nothing was deleted`() {
+        `when`(repository.deleteById(999L)).thenReturn(false)
 
-        service.deleteTask(created.id)
-
-        assertTrue(service.listTasks().none { it.id == created.id })
-    }
-
-    @Test
-    fun `deleteTask throws TaskNotFoundException for unknown id`() {
         assertThrows(TaskNotFoundException::class.java) { service.deleteTask(999L) }
     }
 }
