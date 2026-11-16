@@ -1,10 +1,13 @@
 package com.spec.demo_ia_spec.exception
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.core.MethodParameter
+import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.http.HttpStatus
+import org.springframework.transaction.CannotCreateTransactionException
 import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -35,6 +38,28 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
         assertTrue(response.body?.message?.isNotBlank() == true)
+    }
+
+    @Test
+    fun `CannotCreateTransactionException maps to 503 with generic message`() {
+        val response = handler.handleStorageUnavailable(CannotCreateTransactionException("x"))
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.statusCode)
+        assertEquals(STORAGE_UNAVAILABLE_MESSAGE, response.body?.message)
+        assertFalse(response.body!!.message.contains("x"))
+    }
+
+    @Test
+    fun `DataAccessResourceFailureException maps to 503 with generic message`() {
+        val response = handler.handleStorageUnavailable(DataAccessResourceFailureException("x"))
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.statusCode)
+        assertEquals(STORAGE_UNAVAILABLE_MESSAGE, response.body?.message)
+        assertFalse(response.body!!.message.contains("x"))
+    }
+
+    private companion object {
+        const val STORAGE_UNAVAILABLE_MESSAGE = "Storage temporarily unavailable. Please try again later."
     }
 
     @Suppress("unused")

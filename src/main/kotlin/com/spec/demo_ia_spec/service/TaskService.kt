@@ -6,6 +6,7 @@ import com.spec.demo_ia_spec.model.Task
 import com.spec.demo_ia_spec.repository.TaskRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @Service
 class TaskService(private val taskRepository: TaskRepository) {
@@ -15,7 +16,8 @@ class TaskService(private val taskRepository: TaskRepository) {
             title = request.title,
             description = request.description,
             completed = false,
-            createdAt = Instant.now(),
+            // Truncated to the database precision so the returned value matches what is read back later.
+            createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS),
         )
         return taskRepository.save(task)
     }
@@ -29,7 +31,6 @@ class TaskService(private val taskRepository: TaskRepository) {
     }
 
     fun deleteTask(id: Long) {
-        taskRepository.findById(id) ?: throw TaskNotFoundException(id)
-        taskRepository.deleteById(id)
+        if (!taskRepository.deleteById(id)) throw TaskNotFoundException(id)
     }
 }
