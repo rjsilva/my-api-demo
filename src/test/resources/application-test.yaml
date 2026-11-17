@@ -1,0 +1,15 @@
+# Default test profile: no OTLP export, so no test tries to reach localhost:4318.
+# Tests that need export (e2e, exporter-down) re-enable it via @SpringBootTest(properties = ...).
+management:
+  logging:
+    export:
+      otlp:
+        enabled: false
+  tracing:
+    export:
+      otlp:
+        enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false

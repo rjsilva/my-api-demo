@@ -15,6 +15,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  # Local telemetry backend (Loki + Tempo + Prometheus + Grafana) fed over OTLP.
+  # spring-boot-docker-compose detects this image and wires the OTLP endpoints automatically.
+  lgtm:
+    image: grafana/otel-lgtm:0.40.0
+    ports:
+      - "3000:3000" # Grafana UI
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP (used by the application)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
 volumes:
   tasks-db-data: {}

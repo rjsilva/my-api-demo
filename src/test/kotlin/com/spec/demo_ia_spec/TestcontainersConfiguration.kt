@@ -16,5 +16,8 @@ class TestcontainersConfiguration {
     companion object {
         // Must match the image used in compose.yaml (FR-016).
         const val POSTGRES_IMAGE = "postgres:18"
+
+        // Must match the lgtm image used in compose.yaml.
+        const val LGTM_IMAGE = "grafana/otel-lgtm:0.40.0"
     }
 }
